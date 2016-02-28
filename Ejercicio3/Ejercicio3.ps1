@@ -23,22 +23,14 @@ C:\PS> .\ejercicio3.ps1 .\file.txt ./salida.csv
 #>
 
 param(
-    [Parameter(Mandatory = $false)][ValidateNotNullOrEmpty()][string] $path_archivo,
-    [Parameter(Mandatory = $false)][ValidateNotNullOrEmpty()][string] $path_resultado
+    [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $path_archivo,
+    [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $path_resultado
 )
 
-$cantPar = ($psboundparameters.Count + $args.Count)
-
-if( $cantPar -ne 2 )
-{
-  echo "La cantidad parametros fue distinta a 2!"
-  exit
-}
-
-if(test-path -Path $path_archivo)
-{}else{
-    echo "$($path_archivo) Path de origen no valido"
-    exit 1;
+$value=test-path -Path $path_archivo
+if( $value -eq $false){ 
+  echo "$($path_archivo) Path de origen no valido"
+  exit 1;
 }
 #$path_archivo = "C:\Users\Igna\Desktop\csv.txt";
 #$path_resultado = "C:\Users\Igna\Desktop\csv.csv";

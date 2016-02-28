@@ -43,192 +43,189 @@ Param
 )
 
 
-try{
-Add-Type -Language CSharp @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-    public class matrizWrapper
+function SumarMatrices{
+    param($matriz1, $cantF1, $cantC1, $matriz2, $cantF2, $cantC2)
+    
+    if($cantF1 -ne $cantF2 -or $cantC1 -ne $cantC2)
     {
+        Write-Error 'Las matrices son de distinto orden, no se pueden sumar.';
+        return ;
+    }
+    
+    $res = @();
 
-        int cantidadColumnas;
-        int cantidadFilas;
-        System.Collections.ArrayList matriz;
+    for($i = 0; $i -lt $cantF1; $i++)
+    {
+        $res += ,@();
 
-        public matrizWrapper()
+        for($j = 0; $j -lt $cantC1; $j++)
         {
-            this.matriz = new System.Collections.ArrayList();
-            this.cantidadColumnas = this.cantidadFilas = 0;
+            $res[$i] += ,($matriz1[$i][$j] + $matriz2[$i][$j]);
         }
+    }
+    MostrarMatriz $res $cantF1 $cantC1;
+}
 
-        public matrizWrapper transponer()
+function RestarMatrices{
+    param($matriz1, $cantF1, $cantC1, $matriz2, $cantF2, $cantC2)
+    
+    if($cantF1 -ne $cantF2 -or $cantC1 -ne $cantC2)
+    {
+        Write-Error 'Las matrices son de distinto orden, no se pueden restar.';
+        return ;
+    }
+    
+    $res = @();
+
+    for($i = 0; $i -lt $cantF1; $i++)
+    {
+        $res += ,@();
+
+        for($j = 0; $j -lt $cantC1; $j++)
         {
-            matrizWrapper matrizAuxiliar = new matrizWrapper();
-            matrizAuxiliar.cantidadFilas = this.cantidadColumnas;
-            matrizAuxiliar.cantidadColumnas = this.cantidadFilas;
-            for(int i=0; i<this.cantidadColumnas; i++)
-            {
-                for (int j = 0; j < this.cantidadFilas; j++)
-                    matrizAuxiliar.matriz.Add(this.matriz[i + j * this.cantidadColumnas]);
-                    
-            }
-            return matrizAuxiliar;
+            $res[$i] += ,($matriz1[$i][$j] - $matriz2[$i][$j]);
         }
-        public matrizWrapper restar(matrizWrapper otraMatriz)
+    }
+    MostrarMatriz $res $cantF1 $cantC1;
+}
+
+
+
+
+function MultiplicarMatrices{
+    param($matriz1, $cantF1, $cantC1, $matriz2, $cantF2, $cantC2)
+    
+    if($cantC1 -ne $cantF2)
+    {
+        Write-Error 'Las matrices son de distinto orden, no se pueden multiplicar.';
+        return ;
+    }
+
+    $res = @();
+
+    for ($i = 0; $i -lt $cantF1; $i++) 
+    {
+        $res += ,@();
+        for ($j = 0; $j -lt $cantC2; $j++) 
         {
-            if (this.cantidadColumnas != otraMatriz.cantidadColumnas || this.cantidadFilas != otraMatriz.cantidadFilas)
+            $sum = 0;
+            for ($k = 0; $k -lt $cantF2; $k++) 
             {
-                System.Console.Error.Write("Error, las matrices deben ser iguales tanto en filas como en columnas");
+                $sum += $matriz1[$i][$k]*$matriz2[$k][$j];
             }
-            matrizWrapper matrizResultado = new matrizWrapper();
-            matrizResultado.cantidadFilas = this.cantidadFilas;
-            matrizResultado.cantidadColumnas = this.cantidadColumnas;
-            for(int i =0; i < this.cantidadColumnas * this.cantidadFilas; i++)
-            {
-                matrizResultado.matriz.Add((double)this.matriz[i] - (double)otraMatriz.matriz[i]);
-            }
-            
-            return matrizResultado;
+ 
+            $res[$i] += ,$sum;
         }
+    }
+    MostrarMatriz $res $cantF1 $cantC1;
+}
 
-        public matrizWrapper sumar(matrizWrapper otraMatriz)
+function TrasponerMatriz{
+    param($matriz1, $cantF1, $cantC1)
+    
+    $res = @();
+
+    for($i = 0; $i -lt $cantC1; $i++)
+    {
+        $res += ,@();
+
+        for($j = 0; $j -lt $cantF1; $j++)
         {
-            if (this.cantidadColumnas != otraMatriz.cantidadColumnas || this.cantidadFilas != otraMatriz.cantidadFilas)
-            {
-                System.Console.Error.Write("Error, las matrices deben ser iguales tanto en filas como en columnas");
-            }
-            matrizWrapper matrizResultado = new matrizWrapper();
-            matrizResultado.cantidadFilas = this.cantidadFilas;
-            matrizResultado.cantidadColumnas = this.cantidadColumnas;
-            for (int i = 0; i < this.cantidadColumnas * this.cantidadFilas; i++)
-            {
-                matrizResultado.matriz.Add((double)this.matriz[i] + (double)otraMatriz.matriz[i]);
-            }
-
-            return matrizResultado;
+            $res[$i] += ,$matriz1[$j][$i];
         }
+    }
+    MostrarMatriz $res $cantC1 $cantF1;
+}
 
-        private bool validarMatriz(string[] linea)
+function MostrarMatriz
+{
+    param($matriz, $cantF, $cantC)
+
+    for($i = 0; $i -lt $cantF; $i++)
+    {
+        $txt = ''
+        for($j = 0; $j -lt $cantC; $j++)
         {
-            this.cantidadFilas = linea.Length;
-            this.cantidadColumnas = linea[0].Split(';').Length;
-            for (int i=0; i<this.cantidadFilas;i++)
-            {
-                string[] fila = linea[i].Split(';');
-                if (fila.Length != this.cantidadColumnas)
-                {
-                    return false;
+            $txt += $matriz[$i][$j]
+            $txt += "`t";
+        }
+        write $txt;
+    }
+}
+
+cargarMatriz($matriz, $arrayAux ){
+    $matriz= new String[][];
+    echo $arrayAux.Count
+
+    $cantidadColumnas=0;
+    $contColumnas=0;
+    $cantidadFilas=0;
+
+    foreach ($elemento in $arrayAux){
+        ##La cantidad de letras del elemento es distinta de cero
+        ##Tengo agregarlo a la matriz y sumar 1 a la cantidad de columnas
+        if($elemento.Length -ne 0){
+            $matriz[$cantidadFilas][$contColumnas]=$elemento;
+            $contColumnas++;
+        }
+        else{
+
+            if( $contColumnas -eq 0 ){
+                Write-Error "La matriz no puede contener filas vacias"
+                exit
+            }
+            else{
+                if( $cantidadColumnas -eq 0 ){
+                    $cantidadColumnas=$contColumnas
                 }
-                else
-                {
-                    //añado los elementos de la fila presente
-                    for (int j = 0; j < this.cantidadColumnas; j++)
-                    {
-                        //Lo convierto en un double
-                        try
-                        {
-                            matriz.Add(Convert.ToDouble(fila[j]));
-                        }
-                        catch(FormatException)
-                        {
-                            System.Console.Error.Write("Error, el contenido de los elementos deben ser numeros reales");
-                            System.Environment.Exit(-1);
-                        }
-                        
-                    }
-                }
-            }
-            return true;
-        }
-
-
-            public void mostrarMatriz()
-        {
-            for (int i = 0; i < this.cantidadFilas; i++)
-            {
-                string linea = "";
-                for (int j = 0; j < this.cantidadColumnas; j++)
-                {
-                    linea += this.matriz[i * this.cantidadColumnas + j] + "|";
-                }
-                System.Console.WriteLine(linea);
-
-            }
-        }
-
-        public void holaMundo()
-        {
-            System.Console.WriteLine("Hola mundo de los sistemas operativos");
-        }
-
-        public void setLineaTexto(String linea)
-        {
-            string[] lineaArchivo = Regex.Split(linea, ";;");
-            if (!validarMatriz(lineaArchivo))
-            {
-                System.Console.Error.Write("Error en la cantidad de columnas");
-                System.Environment.Exit(-1);
+                if( $cantidadColumnas -ne $contColumnas ){
+                    Write-Error "La fila $cantidadFilas es desigual en la cantidad de columnas. Las columnas anteriores eran de $cantidadColumnas elementos y esta contiene $contColumnas"
+                 }
+                $cantidadFilas++
             }
         }
     }
-
-"@;
-}
-catch [RuntimeException]
-{
-    Write-Host "Ya se encuentra la clase"    
 }
 
 
-function abrirYCargarArchivo(){
-    if( Test-Path $PathMatriz ){
-        if(Test-Path $PathMatriz -PathType Container){
-            Write-Error "El path especificado debe pertenecer a un archivo y no a un directorio";
-            exit;
-        }
-        $file = Get-Content $PathMatriz
-        switch($file.count){
-            1{
-                if($Operacion.CompareTo("trans") -ne 0 ){
-                    Write-Error "La matriz debe tener 2 elementos para realizar la operacion $Operacion."
-                    exit
-                }
-                $array=New-Object matrizWrapper
-                $array.setLineaTexto($file)
-                $array.transponer().mostrarMatriz()
+function abrirYCargarArchivo($PathMatriz){
+$delimitadorFilas=";;"
+$delimitadorColumnas=";"
+$file = Get-Content $PathMatriz
+switch($file.count){
+        1{
+            $matriz
+            if($Operacion.CompareTo("trans") -ne 0 ){
+                Write-Error "La matriz debe tener 2 elementos para realizar la operacion $Operacion."
+                exit
             }
+            $arrayAux=$file.Split($delimitadorFilas)
+            cargarMatriz $matriz $arrayAux
+            TrasponerMatriz     
+        }
             
-            2{
+        2{
 
-                $matriz1= New-Object Matriz
-                switch($Operacion){
+            $matriz1= New-Object Matriz
+            switch($Operacion){
                 "suma"
                 {
-                    
+                        
                 }
                 "resta"
                 {
-                    
+                        
                 }
                 "multi"
                 {
                     
                 }
-                }
+            }
 
-            }
-            default{
-                Write-Error "Error el archivo debe contener dos o una linea."
-            }
         }
-
-    }
-    else{
-        Write-Error "El path no existe"
+        default{
+            Write-Error "Error el archivo debe contener una o dos lineas."
+        }
     }
 }
 
@@ -236,8 +233,17 @@ Switch($psboundparameters.Count + $args.Count){
     
     #En caso que tenga un parametro o tres funciona y discrimina las funciones#
     2{
-        Write-Debug "Entra por que tiene solo un parametro"
-        abrirYCargarArchivo
+        if( Test-Path $PathMatriz ){
+            if(Test-Path $PathMatriz -PathType Container){
+                Write-Error "El path especificado debe pertenecer a un archivo y no a un directorio";
+                exit;
+            }
+            Write-Debug "Entra por que tiene solo un parametro"
+            abrirYCargarArchivo $PathMatriz
+        }else{
+            Write-Error "El path especificado debe existir";
+        }
+
     }
 
     default{
