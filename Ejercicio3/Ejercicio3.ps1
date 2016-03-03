@@ -27,9 +27,9 @@ param(
     [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $path_resultado
 )
 
-
-if(test-path -Path $path_archivo)
-{}else{
+$validacionPath=test-path -Path $path_archivo
+if( $validacionPath -eq $false )
+{
     echo "$($path_archivo) Path de origen no valido"
     exit 1;
 }
@@ -44,12 +44,10 @@ $registroArray =@() #inicializo array
 $linea = (Get-Content $path_archivo);
 $objetoCreado=$false
 $cont=0
-$registro;
 foreach($aux in  $linea)
 {
     if($aux -eq "///"){
         if($objetoCreado -eq $true -and $cont -ne 0){
-            $objetoCreado
             $cont = 0;
             $objetoCreado=$false
             $registroArray += $registro
@@ -83,10 +81,9 @@ foreach($aux in  $linea)
     }#>
 }
  if($objetoCreado -eq $true -and $cont -ne 0){
-            $objetoCreado
-            $cont = 0;
-            $objetoCreado=$false
-            $registroArray += $registro
+    $cont = 0;
+    $objetoCreado=$false
+    $registroArray += $registro
 }
 
 write $registroArray | Format-Table
