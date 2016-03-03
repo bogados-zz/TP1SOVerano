@@ -3,7 +3,6 @@ Campo2=Valor2
 Campo3=Valor3
 ///
 Campo1=Valor4
-Campo2=Valor5
 Campo3=Valor6
 ///
 Campo1=Juan

@@ -57,6 +57,7 @@ if($path1 -eq $true -and $path2 -eq $true){
     #$directorio = Get-ChildItem -Path $origen| Where {$_.psIsContainer -eq $false}<#$true si quiero listar directorio#>
     #$directorio = Get-ChildItem -Path $origen -Recurse | Where {$_.psIsContainer -eq $false}<#$true si quiero listar directorio#>
     $directorio = ls -Path $origen -Recurse -Include "*.txt"
+    echo $directorio
     $fechaYHoraScript = Get-Date
     $fechaYHoraScript >> $destino\archivoLog.log
 
@@ -71,7 +72,7 @@ if($path1 -eq $true -and $path2 -eq $true){
             }    
         }
         if($copio -eq $true){
-            cp $file -Destination $destino
+            cp $file -Destination $destino"lpm\virgen"
             $new = dir -Path $file| Format-List -Property Directory, Length, LastWriteTime
             $customObject= New-Object psobject
             Add-Member -InputObject $customObject NoteProperty -Name "cantidad" -Value $cant.ToString()
