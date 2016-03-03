@@ -1,9 +1,9 @@
 #############################################################################################
+# PRIMERA REENTREGA
 # PROGRAM-ID.  ejercicio5.ps1					                                                      #
 # TIPO DE PROGRAMA: .ps1                                                                    #
 # ALUMNOS :                                                                                 #                                                                              
-#           -Bogado, Sebastian                                                              #
-#           -Gutierrez, Rubén                                                               #
+#           -Bogado, Sebastian                                                          #
 #           -Rey, Juan Cruz                                                                 #
 #############################################################################################
 
@@ -17,12 +17,19 @@ Muestra el modelo de CPU, cantidad de memoria RAM, placas de red y versión del 
 	
 #>
 
-Get-WmiObject -class win32_Processor | Format-Table
-Get-WmiObject -Class Win32_OperatingSystem | Format-Table
-Get-WmiObject -Class Win32_PhysicalMemory|Format-Table Description, ConfiguredClockSpeed, Manufacturer, Name, PartNumber, Capacity
-$hola=Get-WmiObject Win32_NetworkAdapter -filter "AdapterType != NULL" 
-$i=0
-foreach($tarjeta in $hola){
-    $i++
-}
-echo "La cantidad de tarjetas de red que hay en este equipo es/son: $i"
+
+
+
+$modeloCPU = (Get-WmiObject win32_processor).Name
+$memoriaRamInstalada = [math]::Round( (Get-WmiObject Win32_ComputerSystem).TotalPhysicalMemory/1GB )
+$placasDeRed = Get-WmiObject -Class Win32_NetworkAdapter | where {$_.PhysicalAdapter -eq "True"} | select name
+$sistemaOperativo = (Get-WmiObject Win32_OperatingSystem).Caption
+
+write-host "Modelo de CPU: "
+$modeloCPU | Format-Table
+write-host "Memoria RAM instalada en GB: "
+$memoriaRamInstalada | Format-Table
+write-host "Placas de red: "
+$placasDeRed|Format-Table
+write-host "Versi�n del sistema operativo: "
+$sistemaOperativo | Format-Table

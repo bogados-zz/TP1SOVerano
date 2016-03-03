@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Permita manipular archivos .zip.
 .DESCRIPTION
@@ -23,16 +23,16 @@ Ejemplo de compresión:
 
 [cmdLetbinding()]
 param(
-      [Parameter(position=0)]
+      [Parameter(Mandatory=$true,position=0)]
       [ValidateLength(1,2)]
       [String]$flag="-h",
 
-      [Parameter(position=1)]
-      [ValidateLength(1,50)]
+      [Parameter(Mandatory=$true,position=1)]
+      [ValidateLength(1,300)]
       [String]$file_origen="origen",
 
       [Parameter(position=2)]
-      [ValidateLength(1,50)]
+      [ValidateLength(1,300)]
       [String]$file_destino="destino"
       )
 
@@ -44,16 +44,18 @@ Function  Comprimir
   param
   (
       [Parameter(Mandatory=$true, position=0)]
-      [ValidateLength(1,60)]
+      [ValidateLength(1,300)]
       [String]$pathOrigen,
 
       [Parameter(Mandatory=$true, position=1)]
-      [ValidateLength(1,60)]
+      [ValidateLength(1,300)]
       [String]$pathDestino
   )
 
     try
-    {
+       {
+
+       echo Resolve-Path $pathOrigen
         if(test-path -Path $pathOrigen)
         {
             #if(test-path -Path $pathDestino)
@@ -101,11 +103,11 @@ Function  Descomprimir
   param
   (
       [Parameter(Mandatory=$true, position=0)]
-      [ValidateLength(1,60)]
+      [ValidateLength(1,300)]
       [String]$pathOrigen,
 
       [Parameter(Mandatory=$true, position=1)]
-      [ValidateLength(1,60)]
+      [ValidateLength(1,300)]
       [String]$pathDestino
   )
  
@@ -160,7 +162,7 @@ Function  MostrarZip
     param
     (
         [Parameter(Mandatory=$true, position=0)]
-        [ValidateLength(1,50)]
+        [ValidateLength(1,300)]
         [String]$FileName
     )
     
@@ -174,7 +176,7 @@ Function  MostrarZip
                 $Object | Add-Member -MemberType NoteProperty -Name FileName -Value $RawFile.Name
                 #$Object | Add-Member -MemberType NoteProperty -Name FullPath -Value $RawFile.FullName
                 #$Object | Add-Member -MemberType NoteProperty -Name CompressedLengthInKB -Value ($RawFile.CompressedLength/1KB).Tostring("00")
-                $Object | Add-Member -MemberType NoteProperty -Name UnCompressedLengthInKB -Value ($RawFile.Length/1KB).Tostring("00")
+                $Object | Add-Member -MemberType NoteProperty -Name UnCompressedLengthInKB -Value ($RawFile.Length/1KB).Tostring()
                 #$Object | Add-Member -MemberType NoteProperty -Name FileExtn -Value ([System.IO.Path]::GetExtension($RawFile.FullName))
                 #$Object | Add-Member -MemberType NoteProperty -Name ZipFileName -Value $zipfile
                 $ObjArray += $Object
@@ -188,11 +190,31 @@ Function  MostrarZip
     }
 }
 
-
 switch ($flag) 
 { 
-    "-v" {MostrarZip $file_origen}
-    "-c" {Comprimir $file_destino $file_origen} 
-    "-d" {Descomprimir $file_origen $file_destino}
+    "-v" {
+            try{
+                    MostrarZip (Resolve-Path $file_origen).Path
+                }
+            catch [System.Exception]{
+                Write-Error "Verificar el path de origen"
+            }
+         }
+    "-c" {
+            try{
+                    Comprimir (Resolve-Path $file_destino).Path (Resolve-Path $file_origen).Path
+                }
+            catch [System.Exception]{
+                Write-Error "Verificar los paths"
+            }
+        } 
+    "-d"{
+            try{
+                Descomprimir (Resolve-Path $file_origen).Path (Resolve-Path $file_destino).Path
+            }catch{
+                Write-Error "Verificar los paths"
+            }
+                
+        }
     default {"La opcion elegida en el primer parametro no es valida"}
 }

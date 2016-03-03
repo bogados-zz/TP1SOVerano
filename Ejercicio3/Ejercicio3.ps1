@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Realiza un backup de su base de datos en un archivo de texto plano
 
@@ -27,10 +27,11 @@ param(
     [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $path_resultado
 )
 
-$value=test-path -Path $path_archivo
-if( $value -eq $false){ 
-  echo "$($path_archivo) Path de origen no valido"
-  exit 1;
+
+if(test-path -Path $path_archivo)
+{}else{
+    echo "$($path_archivo) Path de origen no valido"
+    exit 1;
 }
 #$path_archivo = "C:\Users\Igna\Desktop\csv.txt";
 #$path_resultado = "C:\Users\Igna\Desktop\csv.csv";
@@ -66,12 +67,13 @@ foreach($aux in  $linea)
                 }
                 $cont++
             }
+            $registroArray += $registro
     }
-    
-    if($cont -eq 3) #fin del registro BD 
+     
+    <#if($cont -eq 3) #fin del registro BD 
     {
-        $registroArray += $registro 
-    }
+      $registroArray += $registro 
+    }#>
 }
 write $registroArray | Format-Table
 try{
