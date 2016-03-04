@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Permita manipular archivos .zip.
 .DESCRIPTION
@@ -21,178 +21,81 @@ Ejemplo de compresión:
 	
 #>
 
-[cmdLetbinding()]
-param(
-      [Parameter(position=0)]
-      [ValidateLength(1,2)]
-      [String]$flag="-h",
-
-      [Parameter(position=1)]
-      [ValidateLength(1,50)]
-      [String]$file_origen="origen",
-
-      [Parameter(position=2)]
-      [ValidateLength(1,50)]
-      [String]$file_destino="destino"
-      )
-
-
-
-Function  Comprimir
-{
 [CmdletBinding()]
-  param
-  (
-      [Parameter(Mandatory=$true, position=0)]
-      [ValidateLength(1,60)]
-      [String]$pathOrigen,
-
-      [Parameter(Mandatory=$true, position=1)]
-      [ValidateLength(1,60)]
-      [String]$pathDestino
-  )
-
-    try
-    {
-        if(test-path -Path $pathOrigen)
-        {
-            #if(test-path -Path $pathDestino)
-            #{     
-                #Agrego la libreria necesaria para comprimir archivos                           
-                Add-Type -Assembly "System.IO.Compression.FileSystem" 
-                $instancia = [System.IO.Compression.ZipFile]
-                try
-                {
-                    Write-Host "Comprimiendo Archivos..."
-                    #Guardo el backup
-                    $instancia::CreateFromDirectory($pathOrigen,$pathDestino)
-
-                }
-                Catch [System.IO.IOException]
-                {
-                    echo "Error: El archivo ya existe."
-                }
-                Catch
-                {
-                    echo "Error al crear el archivo comprimido."   
-                }
-            # }
-             #else
-             #{
-             #   echo "$($pathDestino) Path de salida no valido"
-             #   exit 1
-             #}
-         }
-         else
-         {
-            echo "$($pathOrigen) Path de origen no valido"
-            exit 1;
-         }
-    }
-    catch
-    {
-        echo "Error al ejecutar el script"
-    }
-}
-
-Function  Descomprimir
-{
-[CmdletBinding()]
-  param
-  (
-      [Parameter(Mandatory=$true, position=0)]
-      [ValidateLength(1,60)]
-      [String]$pathOrigen,
-
-      [Parameter(Mandatory=$true, position=1)]
-      [ValidateLength(1,60)]
-      [String]$pathDestino
-  )
- 
-    try
-    {
-        if(test-path -Path $pathOrigen)
-        {
-            if(test-path -Path $pathDestino)
-            {     
-                #Agrego la libreria necesaria para descomprimir archivos
-
-                Add-Type -AssemblyName 'System.IO.Compression.Filesystem'
-                $instancia = [System.IO.Compression.ZipFile]
-                try
-                {
-                    Write-Host "Descomprimiendo Archivos..."
-                    #Guardo el backup
-                    $instancia::ExtractToDirectory($pathOrigen, $pathDestino) | Format-Table
-
-                }
-                Catch [System.IO.IOException]
-                {
-                    echo "Error: El archivo ya existe o ya ha sido descomprimido en esa ruta."
-                }
-                Catch
-                {
-                    echo "Error al crear el archivo comprimido."   
-                }
-             }
-             else
-             {
-                echo "$($pathDestino) Path de salida no valido"
-                exit 1
-             }
-         }
-         else
-         {
-            echo "$($pathOrigen) Path de origen no valido"
-            exit 1;
-         }
-    }
-    catch
-    {
-        echo "Error al ejecutar el script"
-    }
-}
-
-
-Function  MostrarZip
-{
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory=$true, position=0)]
-        [ValidateLength(1,50)]
-        [String]$FileName
+Param(
+    [Parameter(Mandatory=$True, position=1, ParameterSetName=”v")][switch] $v,
+    [Parameter(Mandatory=$True, position=1, ParameterSetName=”d")][switch] $d,
+    [Parameter(Mandatory=$True, position=1, ParameterSetName=”c")][switch] $c,
+    [Parameter(Mandatory=$True, position=2)][String] $directorio1,
+    [Parameter(Mandatory=$False, position=3)][ValidateScript({Test-Path $_ -PathType "Container" -isValid})][String] $directorio2
     )
-    
-    [Void][Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem')            
-    $ObjArray = @()            
-    foreach($zipfile in $FileName) {    
-        if(Test-Path $ZipFile) { 
-            $RawFiles = [IO.Compression.ZipFile]::OpenRead($zipFile).Entries            
-            foreach($RawFile in $RawFiles) {  
-                $object = New-Object -TypeName PSObject
-                $Object | Add-Member -MemberType NoteProperty -Name FileName -Value $RawFile.Name
-                #$Object | Add-Member -MemberType NoteProperty -Name FullPath -Value $RawFile.FullName
-                #$Object | Add-Member -MemberType NoteProperty -Name CompressedLengthInKB -Value ($RawFile.CompressedLength/1KB).Tostring("00")
-                $Object | Add-Member -MemberType NoteProperty -Name UnCompressedLengthInKB -Value ($RawFile.Length/1KB).Tostring("00")
-                #$Object | Add-Member -MemberType NoteProperty -Name FileExtn -Value ([System.IO.Path]::GetExtension($RawFile.FullName))
-                #$Object | Add-Member -MemberType NoteProperty -Name ZipFileName -Value $zipfile
-                $ObjArray += $Object
-                if(!$ExportCSVFileName) {
-                    $Object
-                }  
-            }
-        } else {
-            Write-Warning "$ZipFileInput Archivo no encontrado"            
-        }
-    }
+
+Add-Type -AssemblyName "System.IO.Compression.FileSystem"
+
+$path_actual = Get-Location
+if (! ($directorio1 -match "C:" -or $directorio1 -match "c:" )){
+    $directorio1=Join-Path $path_actual $directorio1
 }
 
+if ($v.IsPresent){
+    $elementos = [IO.Compression.ZipFile]::OpenRead("$directorio1").Entries
+    $elementos | Format-Table -Property Name, Length -AutoSize
+}    
+else{
+    if( ! ($directorio2 -eq $null -or $directorio2 -eq "") ){
 
-switch ($flag) 
-{ 
-    "-v" {MostrarZip $file_origen}
-    "-c" {Comprimir $file_destino $file_origen} 
-    "-d" {Descomprimir $file_origen $file_destino}
-    default {"La opcion elegida en el primer parametro no es valida"}
+        if (! ($directorio2 -match "C:" -or $directorio2 -match "c:" )){
+            $directorio2=Join-Path $path_actual $directorio2
+        }
+        
+
+        if($d.IsPresent) {
+            if(Test-Path $directorio1)
+            {
+                $elementos = [IO.Compression.ZipFile]::OpenRead("$directorio1").Entries
+
+                foreach($element in $elementos)
+                {
+                    $arch=Join-Path $directorio2 $element.FullName
+                    if(Test-Path $arch)
+                    {
+                        Write-Error "Uno o mas de los archivos a descomprimir existe en el directorio de destino."
+                        return;
+                    }
+                }
+                Write-Host "Se esta descomprimiendo el archivo"
+                [IO.Compression.ZipFile]::ExtractToDirectory("$directorio1","$directorio2")
+                Write-Host "El archivo se descomprimio correctamente"
+            }
+            else
+            {
+                Write-Error "EL archivo a descomprimir es incorrecto o no existe."
+                return;
+            }
+
+
+        }
+        else{
+            if(Test-Path $directorio1)
+            {
+                Write-Error "El archivo ya se encuentra creado"
+                return;
+            }
+            try{
+                Write-Host "Se esta comprimiento el archivo..."
+                [IO.Compression.ZipFile]::CreateFromDirectory("$directorio2","$directorio1")
+                Write-Host "El archivo se ha comprimido correctamente"
+            }
+            catch [System.IO.IOException]{
+                Write-Error "Error con alguno de los dos archivos revise que existan los directorios, para poder crear el archivo."
+            }
+            catch{
+                Write-Error "Error al comprimir el archivo"
+            }
+            
+        }
+    }else{
+        Write-Error "El segundo parametro es obligatorio para ejecutar esta funcionalidad."
+        return;
+    }
 }

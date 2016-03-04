@@ -1,0 +1,10 @@
+Campo1=Valor1
+Campo2=Valor2
+Campo3=Valor3
+///
+Campo1=Valor4
+Campo3=Valor6
+///
+Campo1=Juan
+Campo2=Seba
+Campo3=Gus

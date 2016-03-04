@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Realiza un backup de su base de datos en un archivo de texto plano
 
@@ -27,10 +27,11 @@ param(
     [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $path_resultado
 )
 
-$value=test-path -Path $path_archivo
-if( $value -eq $false){ 
-  echo "$($path_archivo) Path de origen no valido"
-  exit 1;
+$validacionPath=test-path -Path $path_archivo
+if( $validacionPath -eq $false )
+{
+    echo "$($path_archivo) Path de origen no valido"
+    exit 1;
 }
 #$path_archivo = "C:\Users\Igna\Desktop\csv.txt";
 #$path_resultado = "C:\Users\Igna\Desktop\csv.csv";
@@ -41,12 +42,16 @@ $registroArray =@() #inicializo array
 
 
 $linea = (Get-Content $path_archivo);
-
-
+$objetoCreado=$false
+$cont=0
 foreach($aux in  $linea)
 {
     if($aux -eq "///"){
-        $cont = 0;
+        if($objetoCreado -eq $true -and $cont -ne 0){
+            $cont = 0;
+            $objetoCreado=$false
+            $registroArray += $registro
+        }
     }
     else
     {
@@ -58,6 +63,7 @@ foreach($aux in  $linea)
                     #creo un objeto y le agrego como clave el nombre del campo y valor el contenido del campo
                     $registro = new-object PSObject
                     $registro | add-member -membertype NoteProperty -name $partes[0] -Value $partes[1] 
+                    $objetoCreado=$true
                     #write $registro  
                 }
                 else
@@ -67,12 +73,19 @@ foreach($aux in  $linea)
                 $cont++
             }
     }
-    
-    if($cont -eq 3) #fin del registro BD 
+  
+     
+    <#if($cont -eq 3) #fin del registro BD 
     {
-        $registroArray += $registro 
-    }
+      $registroArray += $registro 
+    }#>
 }
+ if($objetoCreado -eq $true -and $cont -ne 0){
+    $cont = 0;
+    $objetoCreado=$false
+    $registroArray += $registro
+}
+
 write $registroArray | Format-Table
 try{
     $registroArray| Export-csv -Delimiter ";" $path_resultado -NoTypeInformation #el -notypeinformation sirve para que no grabe que tipo de objeto que exporto 
